@@ -23,6 +23,9 @@ không dùng thư viện ngoài. Giao diện và chức năng mô phỏng **Zalo
   đóng gói sẵn trong `src/client/fonts/` (giấy phép SIL Open Font License, xem `OFL.txt`) nên không cần cài vào máy.
   Không nạp được thì tự dùng Segoe UI. Emoji vẫn hiển thị nhờ cơ chế font dự phòng của Java.
 - Khử răng cưa chữ kiểu ClearType (LCD) giống ứng dụng Windows, cỡ chữ nguyên để nét chữ sắc.
+- Dùng đủ các độ đậm Regular / Medium / SemiBold / Bold để phân cấp thông tin (tên hội thoại Medium, tiêu đề SemiBold...).
+- Toàn bộ giao diện bo góc thống nhất (10 / 14 / 20 px): bong bóng chat, ô chọn hội thoại, nút, ô nhập, khung soạn tin,
+  thanh trả lời, menu chuột phải (có bóng đổ), thông báo nổi, thanh chuyển Đăng nhập/Đăng ký, thanh cuộn mảnh.
 
 ## Kiến trúc
 

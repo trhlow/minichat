@@ -42,8 +42,8 @@ final class LoginFrame extends JFrame {
     private final JTextField displayName = new HintField("Tên hiển thị (VD: Nguyễn Văn A)");
     private final JLabel error = new JLabel(" ");
     private final JButton submit = Theme.primaryButton("Đăng nhập");
-    private final JLabel tabLogin = new JLabel("ĐĂNG NHẬP", SwingConstants.CENTER);
-    private final JLabel tabRegister = new JLabel("ĐĂNG KÝ", SwingConstants.CENTER);
+    private final TabLabel tabLogin = new TabLabel("Đăng nhập");
+    private final TabLabel tabRegister = new TabLabel("Đăng ký");
     private final JPanel serverRow = new JPanel(new BorderLayout(8, 0));
     private final JPanel form = new JPanel();
     private boolean registerMode;
@@ -88,10 +88,11 @@ final class LoginFrame extends JFrame {
         };
         card.setOpaque(false);
 
-        JPanel tabs = new JPanel(new GridLayout(1, 2));
-        tabs.setOpaque(false);
+        // thanh chuyển Đăng nhập / Đăng ký dạng viên thuốc bo tròn
+        Theme.RoundPanel tabs = new Theme.RoundPanel(new GridLayout(1, 2, 4, 0), Theme.FIELD_BG, null, Theme.ARC + 4)
+                .margin(18, 28, 0, 28);
         for (JLabel t : new JLabel[]{tabLogin, tabRegister}) {
-            t.setFont(Theme.font(Font.BOLD, 13));
+            t.setFont(Theme.font(Theme.SEMIBOLD, 13));
             t.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             tabs.add(t);
         }
@@ -125,7 +126,7 @@ final class LoginFrame extends JFrame {
 
         card.add(tabs, BorderLayout.NORTH);
         card.add(form, BorderLayout.CENTER);
-        tabs.setBorder(BorderFactory.createEmptyBorder(14, 0, 0, 0));
+        tabs.setBorder(BorderFactory.createEmptyBorder(18 + 4, 28 + 4, 4, 28 + 4));
 
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
@@ -151,16 +152,8 @@ final class LoginFrame extends JFrame {
 
     private void setMode(boolean register) {
         registerMode = register;
-        tabLogin.setForeground(register ? Theme.TEXT_2 : Theme.TEXT);
-        tabRegister.setForeground(register ? Theme.TEXT : Theme.TEXT_2);
-        Border active = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 24, 0, 24),
-                BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Theme.PRIMARY),
-                        BorderFactory.createEmptyBorder(0, 0, 10, 0)));
-        Border inactive = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 24, 0, 24),
-                BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.DIVIDER),
-                        BorderFactory.createEmptyBorder(0, 0, 11, 0)));
-        tabLogin.setBorder(register ? inactive : active);
-        tabRegister.setBorder(register ? active : inactive);
+        tabLogin.setActive(!register);
+        tabRegister.setActive(register);
 
         form.removeAll();
         addField(serverRow);
@@ -276,13 +269,67 @@ final class LoginFrame extends JFrame {
         pack();
     }
 
+    /** Một nửa của thanh chuyển: nền trắng bo tròn khi đang được chọn. */
+    private static final class TabLabel extends JLabel {
+        private boolean active;
+
+        TabLabel(String text) {
+            super(text, SwingConstants.CENTER);
+            setBorder(BorderFactory.createEmptyBorder(9, 0, 9, 0));
+        }
+
+        void setActive(boolean active) {
+            this.active = active;
+            setForeground(active ? Theme.PRIMARY : Theme.TEXT_2);
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g0) {
+            if (active) {
+                Graphics2D g = (Graphics2D) g0.create();
+                Theme.hq(g);
+                g.setColor(new Color(16, 32, 64, 18));
+                g.fillRoundRect(0, 1, getWidth(), getHeight() - 1, Theme.ARC, Theme.ARC);
+                g.setColor(Color.WHITE);
+                g.fillRoundRect(0, 0, getWidth(), getHeight() - 2, Theme.ARC, Theme.ARC);
+                g.dispose();
+            }
+            super.paintComponent(g0);
+        }
+    }
+
     // ===================== Ô nhập có chữ gợi ý =====================
 
     private static void style(JTextComponent c) {
         c.setFont(Theme.font(Font.PLAIN, 14));
-        c.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.DIVIDER), BorderFactory.createEmptyBorder(9, 4, 9, 4)));
+        c.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
         c.setOpaque(false);
+        c.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                c.repaint();
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                c.repaint();
+            }
+        });
+    }
+
+    /** Ô nhập dạng hộp bo góc nền xám nhạt, viền xanh khi đang nhập. */
+    private static void paintBox(JTextComponent c, Graphics g0) {
+        Graphics2D g = (Graphics2D) g0.create();
+        Theme.hq(g);
+        g.setColor(c.hasFocus() ? Color.WHITE : Theme.FIELD_BG);
+        g.fillRoundRect(0, 0, c.getWidth() - 1, c.getHeight() - 1, Theme.ARC, Theme.ARC);
+        if (c.hasFocus()) {
+            g.setColor(Theme.PRIMARY);
+            g.setStroke(new java.awt.BasicStroke(1.5f));
+            g.drawRoundRect(1, 1, c.getWidth() - 3, c.getHeight() - 3, Theme.ARC, Theme.ARC);
+        }
+        g.dispose();
     }
 
     private static void paintHint(JTextComponent c, Graphics g0, String hint) {
@@ -299,13 +346,22 @@ final class LoginFrame extends JFrame {
     static final class HintField extends JTextField {
         private final String hint;
 
+        private final boolean boxed;
+
         HintField(String hint) {
+            this(hint, true);
+        }
+
+        /** boxed = false: không tự vẽ khung (khi nằm trong khung tìm kiếm có sẵn). */
+        HintField(String hint, boolean boxed) {
             this.hint = hint;
+            this.boxed = boxed;
             style(this);
         }
 
         @Override
         protected void paintComponent(Graphics g) {
+            if (boxed) paintBox(this, g);
             super.paintComponent(g);
             paintHint(this, g, hint);
         }
@@ -321,6 +377,7 @@ final class LoginFrame extends JFrame {
 
         @Override
         protected void paintComponent(Graphics g) {
+            paintBox(this, g);
             super.paintComponent(g);
             paintHint(this, g, hint);
         }

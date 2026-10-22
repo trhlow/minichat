@@ -11,7 +11,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -122,6 +121,7 @@ final class MessagePanel extends JPanel implements Scrollable {
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Theme.CHAT_BG);
         scroll.getVerticalScrollBar().setUnitIncrement(24);
+        Theme.modernScroll(scroll);
         scroll.getVerticalScrollBar().addAdjustmentListener(e -> {
             if (!e.getValueIsAdjusting() && e.getValue() == 0 && conv != null && conv.hasMore && !conv.loadingMore
                     && getHeight() > scroll.getViewport().getHeight()) {
@@ -313,7 +313,7 @@ final class MessagePanel extends JPanel implements Scrollable {
     /** Nhãn bo tròn ở giữa: ngày hoặc thông báo hệ thống. */
     private JComponent pill(String text, boolean day) {
         JLabel l = new JLabel(Theme.safe(text));
-        l.setFont(Theme.font(day ? Font.BOLD : Font.PLAIN, 12));
+        l.setFont(Theme.font(day ? Theme.SEMIBOLD : Font.PLAIN, 12));
         l.setForeground(day ? Color.WHITE : Theme.TEXT_2);
         JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         p.setOpaque(false);
@@ -477,24 +477,23 @@ final class MessagePanel extends JPanel implements Scrollable {
 
     /** Hộp chọn 6 cảm xúc. */
     void reactionPopup(Message m, Component invoker, int x, int y) {
-        JPopupMenu pop = new JPopupMenu();
-        pop.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        Theme.RoundPopup pop = new Theme.RoundPopup();
+        pop.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 0));
         String mineReaction = m.reactions.get(host.me());
         for (String r : Protocol.REACTIONS) {
             JButton b = Theme.iconButton(null, null);
             b.setText(r);
             b.setFont(Theme.font(Font.PLAIN, 22));
-            if (r.equals(mineReaction)) {
-                b.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(Theme.PRIMARY, 1, true), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-            } else {
-                b.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-            }
+            b.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
             b.addActionListener(e -> {
                 pop.setVisible(false);
                 host.react(m, r);
             });
-            pop.add(b);
+            // cảm xúc mình đã chọn được tô nền xanh nhạt bo tròn
+            Theme.RoundPanel cell = new Theme.RoundPanel(new BorderLayout(), r.equals(mineReaction) ? Theme.SELECTED : null,
+                    null, Theme.ARC_LARGE);
+            cell.add(b);
+            pop.add(cell);
         }
         pop.show(invoker, x, y);
     }
@@ -580,9 +579,9 @@ final class MessagePanel extends JPanel implements Scrollable {
             Graphics2D g = (Graphics2D) g0.create();
             Theme.hq(g);
             g.setColor(mine ? Theme.MY_BUBBLE : Theme.OTHER_BUBBLE);
-            g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+            g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, Theme.ARC_LARGE, Theme.ARC_LARGE);
             g.setColor(mine ? new Color(0xC2DAFB) : Theme.BUBBLE_BORDER);
-            g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+            g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, Theme.ARC_LARGE, Theme.ARC_LARGE);
             g.dispose();
         }
     }
@@ -598,9 +597,9 @@ final class MessagePanel extends JPanel implements Scrollable {
         Quote(Message m) {
             setOpaque(false);
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            setBorder(BorderFactory.createEmptyBorder(4, 10, 5, 8));
+            setBorder(BorderFactory.createEmptyBorder(5, 13, 6, 10));
             JLabel who = new JLabel(host.name(m.replyFrom));
-            who.setFont(Theme.font(Font.BOLD, 12.5f));
+            who.setFont(Theme.font(Theme.SEMIBOLD, 12));
             who.setForeground(Theme.TEXT);
             JLabel what = new JLabel(Theme.safe(m.replyText));
             what.setFont(Theme.font(Font.PLAIN, 12.5f));
@@ -633,9 +632,9 @@ final class MessagePanel extends JPanel implements Scrollable {
             Graphics2D g = (Graphics2D) g0.create();
             Theme.hq(g);
             g.setColor(new Color(0, 0, 0, 14));
-            g.fillRoundRect(0, 0, getWidth(), getHeight() - 3, 8, 8);
+            g.fillRoundRect(0, 0, getWidth(), getHeight() - 3, Theme.ARC_SMALL, Theme.ARC_SMALL);
             g.setColor(Theme.QUOTE_BAR);
-            g.fillRoundRect(0, 0, 3, getHeight() - 3, 3, 3);
+            g.fillRoundRect(3, 5, 3, getHeight() - 13, 3, 3);
             g.dispose();
         }
     }
@@ -677,7 +676,7 @@ final class MessagePanel extends JPanel implements Scrollable {
         BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = out.createGraphics();
         Theme.hq(g);
-        g.setClip(new java.awt.geom.RoundRectangle2D.Double(0, 0, w, h, 14, 14));
+        g.setClip(new java.awt.geom.RoundRectangle2D.Double(0, 0, w, h, Theme.ARC_LARGE - 2, Theme.ARC_LARGE - 2));
         g.drawImage(src, 0, 0, null);
         g.dispose();
         return out;
@@ -689,7 +688,7 @@ final class MessagePanel extends JPanel implements Scrollable {
         String ext = m.fileName.contains(".") ? m.fileName.substring(m.fileName.lastIndexOf('.') + 1).toUpperCase() : "FILE";
         JLabel icon = new JLabel(new FileTypeIcon(ext));
         JLabel name = new JLabel(Theme.safe(shorten(m.fileName, 34)));
-        name.setFont(Theme.font(Font.BOLD, 13.5f));
+        name.setFont(Theme.font(Theme.MEDIUM, 13));
         name.setForeground(Theme.TEXT);
         JLabel size = new JLabel(Protocol.humanSize(m.fileSize));
         size.setFont(Theme.font(Font.PLAIN, 12));

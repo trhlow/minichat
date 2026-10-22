@@ -19,10 +19,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -150,7 +148,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
     private final JLabel myAvatar = new JLabel();
     private final CardLayout sideCards = new CardLayout();
     private final JPanel side = new JPanel(sideCards);
-    private final JTextField search = new LoginFrame.HintField("Tìm kiếm");
+    private final JTextField search = new LoginFrame.HintField("Tìm kiếm", false);
     private final DefaultListModel<Conversation> listModel = new DefaultListModel<>();
     private final JList<Conversation> convList = new JList<>(listModel);
     private final JPanel contactsBox = new JPanel();
@@ -160,10 +158,12 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
     private final JLabel headerTitle = new JLabel();
     private final JLabel headerSub = new JLabel();
     private final JButton btnAddPeople = Theme.iconButton(Theme.icon("group-add", 22, Theme.TEXT), "Thêm bạn vào nhóm");
-    private final JPanel friendBar = new JPanel(new BorderLayout(10, 0));
+    private final Theme.RoundPanel friendBar = new Theme.RoundPanel(new BorderLayout(10, 0), new Color(0xF4F7FB), null, Theme.ARC)
+            .margin(8, 12, 0, 12);
     private final MessagePanel messages = new MessagePanel(this);
     private final JLabel typingLabel = new JLabel(" ");
-    private final JPanel replyBar = new JPanel(new BorderLayout(8, 0));
+    private final Theme.RoundPanel replyBar = new Theme.RoundPanel(new BorderLayout(8, 0), new Color(0xEEF3FB), null, Theme.ARC)
+            .margin(8, 12, 0, 12).accent(Theme.PRIMARY);
     private final JLabel replyTitle = new JLabel();
     private final JLabel replyText = new JLabel();
     private final JTextArea input = new JTextArea() {
@@ -293,14 +293,15 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         myAvatar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                JPopupMenu pm = new JPopupMenu();
-                JLabel who = new JLabel(user(me).display + "  (@" + me + ")");
-                who.setFont(Theme.font(Font.BOLD, 14));
-                who.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+                Theme.RoundPopup pm = new Theme.RoundPopup();
+                JLabel who = new JLabel(name(me) + "  ·  @" + me);
+                who.setFont(Theme.font(Theme.SEMIBOLD, 14));
+                who.setForeground(Theme.TEXT);
+                who.setBorder(BorderFactory.createEmptyBorder(8, 12, 6, 12));
                 pm.add(who);
-                pm.addSeparator();
-                pm.add(menuItem("Hồ sơ của bạn / Đổi tên hiển thị", () -> showUserProfile(me)));
-                pm.add(menuItem("Đăng xuất", ChatClientGUI.this::logout));
+                pm.line();
+                pm.item("Hồ sơ của bạn / Đổi tên hiển thị", null, () -> showUserProfile(me));
+                pm.item("Đăng xuất", Theme.BADGE, ChatClientGUI.this::logout);
                 pm.show(myAvatar, myAvatar.getWidth() + 4, 0);
             }
         });
@@ -336,7 +337,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
                 Graphics2D g = (Graphics2D) g0.create();
                 Theme.hq(g);
                 g.setColor(new Color(0xEAEDF0));
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g.fillRoundRect(0, 0, getWidth(), getHeight(), Theme.ARC, Theme.ARC);
                 Theme.icon("search", 16, Theme.TEXT_2).paintIcon(this, g, 9, (getHeight() - 16) / 2);
                 g.dispose();
             }
@@ -399,8 +400,8 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
                 }
             }
         });
-        JScrollPane listScroll = new JScrollPane(convList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane listScroll = Theme.modernScroll(new JScrollPane(convList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
         listScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.DIVIDER));
         listScroll.getVerticalScrollBar().setUnitIncrement(20);
 
@@ -414,6 +415,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         contactsScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.DIVIDER));
         contactsScroll.getVerticalScrollBar().setUnitIncrement(20);
         contactsScroll.getViewport().setBackground(Color.WHITE);
+        Theme.modernScroll(contactsScroll);
 
         side.add(listScroll, "chats");
         side.add(contactsScroll, "contacts");
@@ -441,7 +443,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         header.setBackground(Color.WHITE);
         header.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.DIVIDER),
                 BorderFactory.createEmptyBorder(10, 16, 10, 10)));
-        headerTitle.setFont(Theme.font(Font.BOLD, 16.5f));
+        headerTitle.setFont(Theme.font(Theme.SEMIBOLD, 16));
         headerTitle.setForeground(Theme.TEXT);
         headerSub.setFont(Theme.font(Font.PLAIN, 12.5f));
         headerSub.setForeground(Theme.TEXT_2);
@@ -466,9 +468,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         header.add(titles, BorderLayout.CENTER);
         header.add(actions, BorderLayout.EAST);
 
-        friendBar.setBackground(Color.WHITE);
-        friendBar.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.DIVIDER),
-                BorderFactory.createEmptyBorder(8, 16, 8, 16)));
+        friendBar.setBorder(BorderFactory.createEmptyBorder(8 + 8, 12 + 14, 8, 12 + 10));
         JPanel north = new JPanel(new BorderLayout());
         north.add(header, BorderLayout.NORTH);
         north.add(friendBar, BorderLayout.SOUTH);
@@ -481,7 +481,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         typingRow.setBackground(Theme.CHAT_BG);
         typingRow.add(typingLabel);
 
-        replyTitle.setFont(Theme.font(Font.BOLD, 12.5f));
+        replyTitle.setFont(Theme.font(Theme.SEMIBOLD, 12));
         replyTitle.setForeground(Theme.TEXT);
         replyTitle.setIcon(Theme.icon("reply", 14, Theme.TEXT_2));
         replyText.setFont(Theme.font(Font.PLAIN, 12.5f));
@@ -492,10 +492,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         replyTexts.add(replyText);
         JButton cancelReply = Theme.iconButton(Theme.icon("close", 16, Theme.TEXT_2), "Huỷ trả lời");
         cancelReply.addActionListener(e -> setReply(null));
-        replyBar.setBackground(new Color(0xF3F6FA));
-        replyBar.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(8, 12, 0, 12),
-                BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 3, 0, 0, Theme.PRIMARY),
-                        BorderFactory.createEmptyBorder(4, 10, 4, 4))));
+        replyBar.setBorder(BorderFactory.createEmptyBorder(8 + 6, 12 + 18, 6, 12 + 6));
         replyBar.add(replyTexts, BorderLayout.CENTER);
         replyBar.add(cancelReply, BorderLayout.EAST);
         replyBar.setVisible(false);
@@ -511,12 +508,13 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         toolbar.add(btnEmoji);
         toolbar.add(btnImage);
         toolbar.add(btnFile);
-        toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.DIVIDER));
+        toolbar.setBorder(BorderFactory.createEmptyBorder(4, 8, 0, 8));
 
         input.setFont(Theme.font(Font.PLAIN, 14.5f));
         input.setLineWrap(true);
         input.setWrapStyleWord(true);
-        input.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 8));
+        input.setBorder(BorderFactory.createEmptyBorder(9, 16, 9, 6));
+        input.setOpaque(false);
         input.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send-message");
         input.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK), DefaultEditorKit.insertBreakAction);
         input.getActionMap().put("send-message", new AbstractAction() {
@@ -528,13 +526,17 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         input.getDocument().addDocumentListener(onChange(this::onInputChanged));
         installTransfer();
         inputScroll.setBorder(BorderFactory.createEmptyBorder());
+        inputScroll.setOpaque(false);
+        inputScroll.getViewport().setOpaque(false);
+        Theme.modernScroll(inputScroll).setOpaque(false);
         inputScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         sendBtn.addActionListener(e -> sendText());
         sendBtn.setFont(Theme.font(Font.PLAIN, 22));
-        JPanel inputRow = new JPanel(new BorderLayout());
-        inputRow.setOpaque(false);
+        Theme.RoundPanel inputRow = new Theme.RoundPanel(new BorderLayout(), Theme.FIELD_BG, null, Theme.ARC_LARGE)
+                .margin(4, 12, 12, 12);
+        inputRow.setBorder(BorderFactory.createEmptyBorder(4, 12, 12, 12));
         inputRow.add(inputScroll, BorderLayout.CENTER);
-        JPanel sendWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
+        JPanel sendWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
         sendWrap.setOpaque(false);
         sendWrap.add(sendBtn);
         inputRow.add(sendWrap, BorderLayout.EAST);
@@ -1076,19 +1078,20 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         int i = convList.locationToIndex(e.getPoint());
         if (i < 0) return;
         Conversation c = listModel.get(i);
-        JPopupMenu pm = new JPopupMenu();
-        pm.add(menuItem("Mở hội thoại", () -> select(c)));
-        if (c.unread > 0) pm.add(menuItem("Đánh dấu đã đọc", () -> {
+        Theme.RoundPopup pm = new Theme.RoundPopup();
+        pm.item("Mở hội thoại", null, () -> select(c));
+        if (c.unread > 0) pm.item("Đánh dấu đã đọc", null, () -> {
             c.unread = 0;
             conn.send(Protocol.SEEN, c.id, c.lastId());
             listDirty = true;
             queueRefresh();
-        }));
+        });
         if (Protocol.isGroup(c.id)) {
-            pm.add(menuItem("Thông tin nhóm", () -> showGroupInfo(Protocol.groupIdOf(c.id))));
-            pm.add(menuItem("Rời nhóm", () -> leaveGroup(Protocol.groupIdOf(c.id))));
+            pm.item("Thông tin nhóm", null, () -> showGroupInfo(Protocol.groupIdOf(c.id)));
+            pm.line();
+            pm.item("Rời nhóm", Theme.BADGE, () -> leaveGroup(Protocol.groupIdOf(c.id)));
         } else if (Protocol.isPrivate(c.id)) {
-            pm.add(menuItem("Xem thông tin", () -> showUserProfile(Protocol.peerOf(c.id, me))));
+            pm.item("Xem thông tin", null, () -> showUserProfile(Protocol.peerOf(c.id, me)));
         }
         pm.show(convList, e.getX(), e.getY());
     }
@@ -1165,10 +1168,9 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
     }
 
     private void emojiPicker(Component invoker) {
-        JPopupMenu pop = new JPopupMenu();
+        Theme.RoundPopup pop = new Theme.RoundPopup();
         JPanel grid = new JPanel(new GridLayout(0, 8, 2, 2));
-        grid.setBackground(Color.WHITE);
-        grid.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+        grid.setOpaque(false);
         for (String e : EMOJIS) {
             JButton b = Theme.iconButton(null, null);
             b.setText(e);
@@ -1379,33 +1381,29 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
 
     @Override
     public void showMenu(Message m, Component invoker, int x, int y) {
-        JPopupMenu pm = new JPopupMenu();
+        Theme.RoundPopup pm = new Theme.RoundPopup();
         if (!m.recalled) {
-            pm.add(menuItem("Trả lời", () -> reply(m)));
-            pm.add(menuItem("Thả cảm xúc…", () -> messages.reactionPopup(m, invoker, x, y)));
+            pm.item("Trả lời", null, () -> reply(m));
+            pm.item("Thả cảm xúc…", null, () -> messages.reactionPopup(m, invoker, x, y));
             if (Message.TEXT.equals(m.type)) {
-                pm.add(menuItem("Sao chép tin nhắn", () -> {
+                pm.item("Sao chép tin nhắn", null, () -> {
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(m.text), null);
                     showToast("Đã sao chép", false);
-                }));
+                });
             }
-            if (Message.IMAGE.equals(m.type)) pm.add(menuItem("Xem ảnh", () -> openAttachment(m)));
-            if (m.isFile()) pm.add(menuItem("Lưu về máy…", () -> saveFile(m)));
-            pm.add(menuItem("Chuyển tiếp…", () -> forwardDialog(m)));
-            pm.addSeparator();
+            if (Message.IMAGE.equals(m.type)) pm.item("Xem ảnh", null, () -> openAttachment(m));
+            if (m.isFile()) pm.item("Lưu về máy…", null, () -> saveFile(m));
+            pm.item("Chuyển tiếp…", null, () -> forwardDialog(m));
+            pm.line();
             if (m.from.equals(me) && System.currentTimeMillis() - m.time <= Protocol.RECALL_WINDOW_MS) {
-                JMenuItem recall = menuItem("Thu hồi", () -> {
+                pm.item("Thu hồi", Theme.BADGE, () -> {
                     int r = JOptionPane.showConfirmDialog(this, "Thu hồi tin nhắn này với mọi người?", "Thu hồi tin nhắn",
                             JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
                     if (r == JOptionPane.OK_OPTION) conn.send(Protocol.RECALL, m.id);
                 });
-                recall.setForeground(Theme.BADGE);
-                pm.add(recall);
             }
         }
-        JMenuItem del = menuItem("Xoá chỉ ở phía tôi", () -> conn.send(Protocol.DELETE_MSG, m.id));
-        del.setForeground(Theme.BADGE);
-        pm.add(del);
+        pm.item("Xoá chỉ ở phía tôi", Theme.BADGE, () -> conn.send(Protocol.DELETE_MSG, m.id));
         pm.show(invoker, x, y);
     }
 
@@ -1490,10 +1488,11 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             JLabel lb = new JLabel("<html><b>" + esc(name(m.from)) + "</b> <span style='color:#7589A3'>"
                     + Theme.dayLabel(m.time) + " " + Theme.hm(m.time) + "</span><br>" + esc(m.snippet()) + "</html>");
             lb.setFont(Theme.font(Font.PLAIN, 13));
-            lb.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
-            lb.setOpaque(true);
-            lb.setBackground(sel ? Theme.SELECTED : Color.WHITE);
-            return lb;
+            Theme.RoundPanel cell = new Theme.RoundPanel(new BorderLayout(), sel ? Theme.SELECTED : null, null, Theme.ARC)
+                    .margin(2, 6, 2, 6);
+            cell.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+            cell.add(lb);
+            return cell;
         });
         JDialog d = dialog("Kết quả tìm kiếm (" + found.size() + ")");
         list.addMouseListener(onClick(() -> {
@@ -1503,7 +1502,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
                 messages.scrollTo(m.id);
             }
         }));
-        JScrollPane sp = new JScrollPane(list);
+        JScrollPane sp = Theme.modernScroll(new JScrollPane(list));
         sp.setPreferredSize(new Dimension(420, 360));
         d.add(sp);
         d.pack();
@@ -1566,9 +1565,9 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             count.setText("Đã chọn " + chosen.size());
         };
         list.setCellRenderer((l, u, i, sel, focus) -> {
-            JPanel row = new JPanel(new BorderLayout(10, 0));
-            row.setBackground(Color.WHITE);
-            row.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            Theme.RoundPanel row = new Theme.RoundPanel(new BorderLayout(10, 0),
+                    chosen.contains(u.username) ? Theme.SELECTED : null, null, Theme.ARC).margin(2, 6, 2, 6);
+            row.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
             JLabel check = new JLabel(new CheckIcon(chosen.contains(u.username)));
             JLabel who = new JLabel("<html><b>" + esc(u.display) + "</b><br><span style='color:#7589A3'>@" + u.username
                     + (Protocol.FRIEND_YES.equals(u.friend) ? " · Bạn bè" : "") + "</span></html>",
@@ -1602,7 +1601,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             top.add(Box.createVerticalStrut(10));
         }
         top.add(filter);
-        JScrollPane sp = new JScrollPane(list);
+        JScrollPane sp = Theme.modernScroll(new JScrollPane(list));
         sp.setPreferredSize(new Dimension(420, 340));
         sp.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Theme.DIVIDER));
 
@@ -1673,7 +1672,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.setBackground(Color.WHITE);
         bottom.add(send);
-        JScrollPane sp = new JScrollPane(list);
+        JScrollPane sp = Theme.modernScroll(new JScrollPane(list));
         sp.setPreferredSize(new Dimension(400, 380));
         d.add(what, BorderLayout.NORTH);
         d.add(sp, BorderLayout.CENTER);
@@ -1700,7 +1699,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         p.setBorder(BorderFactory.createEmptyBorder(22, 30, 22, 30));
         JLabel av = new JLabel(Theme.avatar(u.display, u.username, 88, false, u.online));
         JLabel nm = new JLabel(Theme.safe(u.display));
-        nm.setFont(Theme.font(Font.BOLD, 19));
+        nm.setFont(Theme.font(Theme.SEMIBOLD, 19));
         nm.setForeground(Theme.TEXT);
         JLabel un = new JLabel("@" + u.username + " · " + Theme.lastSeen(u.online, u.lastSeen));
         un.setFont(Theme.font(Font.PLAIN, 13));
@@ -1785,7 +1784,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         head.setBorder(BorderFactory.createEmptyBorder(18, 20, 10, 20));
         JLabel av = new JLabel(Theme.avatar(g.name, Protocol.groupConv(g.id), 72, true, false));
         JLabel nm = new JLabel(Theme.safe(g.name));
-        nm.setFont(Theme.font(Font.BOLD, 18));
+        nm.setFont(Theme.font(Theme.SEMIBOLD, 18));
         JLabel sub = new JLabel(g.members.size() + " thành viên · Trưởng nhóm: " + name(g.owner));
         sub.setFont(Theme.font(Font.PLAIN, 12.5f));
         sub.setForeground(Theme.TEXT_2);
@@ -1836,7 +1835,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             row.add(right, BorderLayout.EAST);
             list.add(row);
         }
-        JScrollPane sp = new JScrollPane(list);
+        JScrollPane sp = Theme.modernScroll(new JScrollPane(list));
         sp.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Theme.DIVIDER));
         sp.setPreferredSize(new Dimension(440, Math.min(360, members.size() * 58 + 4)));
         sp.getVerticalScrollBar().setUnitIncrement(20);
@@ -1920,14 +1919,8 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         if (gs.isEmpty()) hint("Chưa có nhóm nào. Bấm biểu tượng tạo nhóm ở trên để tạo nhóm mới.");
         for (GroupInfo g : gs) {
             boolean member = g.members.contains(me);
-            JPanel row = new JPanel(new BorderLayout(10, 0));
-            styleRow(row);
-            JLabel l = new JLabel("<html><b>" + esc(g.name) + "</b><br><span style='color:#7589A3'>" + g.members.size()
-                    + " thành viên" + (member ? " · Đã tham gia" : "") + "</span></html>",
-                    Theme.avatar(g.name, Protocol.groupConv(g.id), 40, true, false), SwingConstants.LEFT);
-            l.setIconTextGap(10);
-            l.setFont(Theme.font(Font.PLAIN, 13.5f));
-            row.add(l, BorderLayout.CENTER);
+            JPanel row = contactRow(Theme.avatar(g.name, Protocol.groupConv(g.id), 40, true, false), g.name,
+                    g.members.size() + " thành viên" + (member ? " · Đã tham gia" : ""));
             if (member) {
                 row.addMouseListener(onClick(() -> {
                     showSide("chats");
@@ -1960,7 +1953,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
 
     private void section(String title) {
         JLabel l = new JLabel(title);
-        l.setFont(Theme.font(Font.BOLD, 13.5f));
+        l.setFont(Theme.font(Theme.SEMIBOLD, 13));
         l.setForeground(Theme.TEXT);
         l.setBorder(BorderFactory.createEmptyBorder(14, 16, 6, 16));
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1977,34 +1970,31 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         contactsBox.add(l);
     }
 
-    private void styleRow(JPanel row) {
-        row.setBackground(Color.WHITE);
-        row.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 12));
+    /** Một dòng trong danh bạ: nền bo góc khi rê chuột, avatar + tên + dòng phụ. */
+    private JPanel contactRow(Icon avatar, String title, String sub) {
+        JPanel row = new Theme.HoverRow(new BorderLayout(12, 0));
+        row.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 14));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 58));
-        row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        row.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                row.setBackground(Theme.HOVER);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!row.contains(e.getPoint())) row.setBackground(Color.WHITE);
-            }
-        });
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
+        JLabel av = new JLabel(avatar);
+        JLabel t = new JLabel(Theme.safe(title));
+        t.setFont(Theme.font(Theme.MEDIUM, 14));
+        t.setForeground(Theme.TEXT);
+        JLabel s = new JLabel(Theme.safe(sub));
+        s.setFont(Theme.font(Font.PLAIN, 12));
+        s.setForeground(Theme.TEXT_2);
+        JPanel texts = new JPanel(new GridLayout(2, 1, 0, 2));
+        texts.setOpaque(false);
+        texts.add(t);
+        texts.add(s);
+        row.add(av, BorderLayout.WEST);
+        row.add(texts, BorderLayout.CENTER);
+        return row;
     }
 
-    /** Một dòng người dùng: avatar + tên + dòng phụ; bấm để xem thông tin. */
+    /** Một dòng người dùng; bấm để xem thông tin. */
     private JPanel personRow(UserInfo u, String sub) {
-        JPanel row = new JPanel(new BorderLayout(10, 0));
-        styleRow(row);
-        JLabel l = new JLabel("<html><b>" + esc(u.display) + "</b><br><span style='color:#7589A3'>" + esc(sub) + "</span></html>",
-                Theme.avatar(u.display, u.username, 40, false, u.online), SwingConstants.LEFT);
-        l.setIconTextGap(10);
-        l.setFont(Theme.font(Font.PLAIN, 13.5f));
-        row.add(l, BorderLayout.CENTER);
+        JPanel row = contactRow(Theme.avatar(u.display, u.username, 40, false, u.online), u.display, sub);
         row.addMouseListener(onClick(() -> showUserProfile(u.username)));
         return row;
     }
@@ -2018,16 +2008,16 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
 
     private static JButton button(String text, Runnable r) {
         JButton b = Theme.secondaryButton(text);
-        b.setFont(Theme.font(Font.BOLD, 12));
-        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        b.setFont(Theme.font(Theme.SEMIBOLD, 12));
+        b.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         b.addActionListener(e -> r.run());
         return b;
     }
 
     private static JButton primary(String text, Runnable r) {
         JButton b = Theme.primaryButton(text);
-        b.setFont(Theme.font(Font.BOLD, 12));
-        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        b.setFont(Theme.font(Theme.SEMIBOLD, 12));
+        b.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         b.addActionListener(e -> r.run());
         return b;
     }
@@ -2043,14 +2033,6 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         d.getRootPane().registerKeyboardAction(e -> d.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
         return d;
-    }
-
-    private static JMenuItem menuItem(String text, Runnable r) {
-        JMenuItem it = new JMenuItem(text);
-        it.setFont(Theme.font(Font.PLAIN, 13.5f));
-        it.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 16));
-        it.addActionListener(e -> r.run());
-        return it;
     }
 
     private static MouseAdapter onClick(Runnable r) {
@@ -2097,14 +2079,14 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
                 Graphics2D g = (Graphics2D) g0.create();
                 Theme.hq(g);
                 g.setColor((Color) c.getClientProperty("bg"));
-                g.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 12, 12);
+                g.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), c.getHeight(), c.getHeight());
                 g.dispose();
                 super.paint(g0, c);
             }
         });
         Dimension d = toast.getPreferredSize();
         int w = Math.min(d.width, getLayeredPane().getWidth() - 40);
-        toast.setBounds((getLayeredPane().getWidth() - w) / 2, getLayeredPane().getHeight() - d.height - 120, w, d.height);
+        toast.setBounds((getLayeredPane().getWidth() - w) / 2, 84, w, d.height);
         toast.setVisible(true);
         toastTimer.restart();
     }
@@ -2251,12 +2233,12 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             Theme.hq(g);
             if (selected) {
                 g.setColor(Theme.NAV_ACTIVE);
-                g.fillRect(0, 0, getWidth(), getHeight());
+                g.fillRoundRect(8, 4, getWidth() - 16, getHeight() - 8, Theme.ARC, Theme.ARC);
             }
             Theme.icon(kind, 28, Color.WHITE).paintIcon(this, g, (getWidth() - 28) / 2, (getHeight() - 28) / 2);
             if (badge > 0) {
                 String s = badge > 99 ? "99+" : badge > 5 && "chat".equals(kind) ? "5+" : String.valueOf(badge);
-                g.setFont(Theme.font(Font.BOLD, 10.5f));
+                g.setFont(Theme.font(Theme.SEMIBOLD, 10));
                 FontMetrics fm = g.getFontMetrics();
                 int w = Math.max(17, fm.stringWidth(s) + 8);
                 int x = getWidth() / 2 + 4, y = 9;
@@ -2277,10 +2259,12 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
         private final JLabel preview = new JLabel();
         private final JLabel time = new JLabel();
         private final Badge badge = new Badge();
+        private Color bg;
 
         ConvCell() {
             super(new BorderLayout(12, 0));
-            setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
             title.setForeground(Theme.TEXT);
             time.setFont(Theme.font(Font.PLAIN, 12));
             time.setForeground(Theme.TEXT_2);
@@ -2307,16 +2291,28 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             boolean unread = c.unread > 0;
             avatar.setIcon(convAvatar(c, 48));
             title.setText(title(c));
-            title.setFont(Theme.font(unread ? Font.BOLD : Font.PLAIN, 15));
+            title.setFont(Theme.font(unread ? Theme.SEMIBOLD : Theme.MEDIUM, 15));
             preview.setText(preview(c));
             boolean typing = !c.typing.isEmpty();
-            preview.setFont(Theme.font(typing ? Font.ITALIC : unread ? Font.BOLD : Font.PLAIN, 13));
+            preview.setFont(Theme.font(typing ? Font.ITALIC : unread ? Theme.MEDIUM : Font.PLAIN, 13));
             preview.setForeground(typing ? Theme.PRIMARY : unread ? Theme.TEXT : Theme.TEXT_2);
             Message last = c.last();
             time.setText(last == null ? "" : Theme.shortTime(last.time));
             badge.count = c.unread;
-            setBackground(selected ? Theme.SELECTED : index == hoverIndex ? Theme.HOVER : Color.WHITE);
+            bg = selected ? Theme.SELECTED : index == hoverIndex ? Theme.HOVER : null;
             return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g0) {
+            if (bg != null) {
+                Graphics2D g = (Graphics2D) g0.create();
+                Theme.hq(g);
+                g.setColor(bg);
+                g.fillRoundRect(8, 3, getWidth() - 16, getHeight() - 6, Theme.ARC, Theme.ARC);
+                g.dispose();
+            }
+            super.paintComponent(g0);
         }
     }
 
@@ -2334,7 +2330,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
             Graphics2D g = (Graphics2D) g0.create();
             Theme.hq(g);
             String s = count > 5 ? "5+" : String.valueOf(count);
-            g.setFont(Theme.font(Font.BOLD, 11));
+            g.setFont(Theme.font(Theme.SEMIBOLD, 11));
             FontMetrics fm = g.getFontMetrics();
             int w = Math.max(18, fm.stringWidth(s) + 10);
             int x = getWidth() - w;

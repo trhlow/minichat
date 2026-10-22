@@ -140,6 +140,36 @@ public class GuiSnapshot {
         Thread.sleep(200);
         snap(gui[0], new File(outDir, "3-danh-ba.png"));
 
+        // ---- ảnh 5: menu chuột phải + chọn cảm xúc (popup vẽ riêng vì không nằm trong cửa sổ) ----
+        SwingUtilities.invokeAndWait(() -> {
+            Theme.RoundPopup pm = new Theme.RoundPopup();
+            pm.item("Trả lời", null, () -> { });
+            pm.item("Thả cảm xúc…", null, () -> { });
+            pm.item("Sao chép tin nhắn", null, () -> { });
+            pm.item("Chuyển tiếp…", null, () -> { });
+            pm.line();
+            pm.item("Thu hồi", Theme.BADGE, () -> { });
+            pm.item("Xoá chỉ ở phía tôi", Theme.BADGE, () -> { });
+            java.awt.Dimension d = pm.getPreferredSize();
+            pm.setSize(d);
+            layoutTree(pm);
+            double sc = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()
+                    .getDefaultConfiguration().getDefaultTransform().getScaleX();
+            BufferedImage img = new BufferedImage((int) ((d.width + 40) * sc), (int) ((d.height + 40) * sc), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = img.createGraphics();
+            g.scale(sc, sc);
+            g.setColor(Theme.CHAT_BG);
+            g.fillRect(0, 0, d.width + 40, d.height + 40);
+            g.translate(20, 20);
+            pm.paint(g);
+            g.dispose();
+            try {
+                ImageIO.write(img, "png", new File(outDir, "5-menu.png"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         // ---- ảnh 4: đăng nhập ----
         LoginFrame[] lf = new LoginFrame[1];
         SwingUtilities.invokeAndWait(() -> lf[0] = new LoginFrame());
@@ -148,6 +178,11 @@ public class GuiSnapshot {
         System.out.println("Da luu anh vao " + outDir.getAbsolutePath());
         server.stop();
         System.exit(0);
+    }
+
+    private static void layoutTree(java.awt.Component c) {
+        c.doLayout();
+        if (c instanceof java.awt.Container) for (java.awt.Component ch : ((java.awt.Container) c).getComponents()) layoutTree(ch);
     }
 
     private static ChatConnection login(int port, String user) throws Exception {
@@ -169,7 +204,7 @@ public class GuiSnapshot {
     }
 
     private static void snap(JFrame f, File file) throws Exception {
-        SwingUtilities.invokeAndWait(() -> {
+        Runnable paint = () -> {
             if (!f.isDisplayable()) f.addNotify();
             f.validate();
             JComponent root = f.getRootPane();
@@ -188,7 +223,9 @@ public class GuiSnapshot {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        });
+        };
+        if (SwingUtilities.isEventDispatchThread()) paint.run();
+        else SwingUtilities.invokeAndWait(paint);
     }
 
     private static byte[] sampleImage() throws Exception {
