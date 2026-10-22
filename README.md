@@ -59,7 +59,12 @@ test/MiniChatServerTest.java    kiểm thử tích hợp server qua socket thậ
 test/client/GuiSnapshot.java    dựng dữ liệu mẫu và vẽ giao diện ra ảnh PNG
 ```
 
-## Chạy bằng cmd (cần JDK 17+ trong PATH)
+## Chạy bằng cmd (cần JDK 17+)
+
+Các file `.bat` **tự tìm JDK** theo thứ tự: biến `JAVA_HOME` → `PATH` → các thư mục cài đặt thường gặp
+(`C:\Program Files\Java`, Adoptium, Microsoft, Zulu, `%USERPROFILE%\.jdks`, JDK đi kèm IntelliJ / Android Studio).
+Nếu không tìm thấy, cài JDK 17+ (vd. https://adoptium.net) rồi đặt `JAVA_HOME`.
+Script dùng đường dẫn tương đối nên chạy được cả khi thư mục dự án có dấu tiếng Việt.
 
 ```
 build.bat               biên dịch vào bin/

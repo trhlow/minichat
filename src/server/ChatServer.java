@@ -88,6 +88,7 @@ public class ChatServer {
             if (serverSocket != null) serverSocket.close();
         } catch (IOException ignored) {
         }
+        saver.shutdownNow();
         saveIfDirty();
     }
 
