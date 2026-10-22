@@ -235,6 +235,7 @@ public class MiniChatServerTest {
             a.expect(Protocol.FRIEND, f -> f[1].equals("bob") && f[2].equals(Protocol.FRIEND_YES), "ban be con sau khi khoi dong lai");
             a.expect(Protocol.HIST, f -> f[2].equals(Protocol.CONV_ALL) && f[6].startsWith("Xin chào"), "du lieu con sau khi khoi dong lai server");
             a.close();
+            Thread.sleep(300); // chờ server ghi nhận ngắt kết nối rồi mới dừng
         } finally {
             server2.stop();
         }

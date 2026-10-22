@@ -17,6 +17,13 @@ không dùng thư viện ngoài. Giao diện và chức năng mô phỏng **Zalo
 | Lịch sử | Server lưu toàn bộ dữ liệu vào `data/` → nhận **tin nhắn khi offline**, cuộn lên để tải tin cũ hơn (phân trang) |
 | Thông báo | Huy hiệu số chưa đọc, tiêu đề cửa sổ `(3) MiniChat`, thông báo Windows + nháy taskbar khi cửa sổ không được chọn |
 
+## Giao diện & font chữ
+
+- Font **Be Vietnam Pro** – font mã nguồn mở thiết kế riêng cho tiếng Việt (dấu thanh cân đối, rõ ở cỡ nhỏ),
+  đóng gói sẵn trong `src/client/fonts/` (giấy phép SIL Open Font License, xem `OFL.txt`) nên không cần cài vào máy.
+  Không nạp được thì tự dùng Segoe UI. Emoji vẫn hiển thị nhờ cơ chế font dự phòng của Java.
+- Khử răng cưa chữ kiểu ClearType (LCD) giống ứng dụng Windows, cỡ chữ nguyên để nét chữ sắc.
+
 ## Kiến trúc
 
 ```
@@ -54,6 +61,7 @@ src/client/ChatClientGUI.java   cửa sổ chính (danh sách hội thoại, dan
 src/client/MessagePanel.java    khung tin nhắn dạng bong bóng
 src/client/Conversation.java    trạng thái 1 hội thoại phía client
 src/client/Theme.java           màu sắc, font, avatar, icon vẽ bằng Java2D
+src/client/fonts/               font Be Vietnam Pro (.ttf) + giấy phép OFL
 src/client/ConsoleClient.java   client chạy trên cmd
 test/MiniChatServerTest.java    kiểm thử tích hợp server qua socket thật (69 kiểm tra)
 test/client/GuiSnapshot.java    dựng dữ liệu mẫu và vẽ giao diện ra ảnh PNG

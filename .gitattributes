@@ -1,2 +1,4 @@
 *.bat text eol=crlf
 *.java text eol=lf
+*.md text eol=lf
+*.ttf binary

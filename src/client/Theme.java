@@ -4,6 +4,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.text.StyleContext;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,14 +13,20 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 /** Màu sắc, font, avatar và icon theo phong cách Zalo (vẽ bằng Java2D, không cần file ảnh). */
 final class Theme {
@@ -60,15 +67,49 @@ final class Theme {
         return s != null && s.startsWith("<") ? "\u200B" + s : s;
     }
 
-    static Font font(int style, float size) {
-        return new Font(Font.SANS_SERIF, style, 12).deriveFont(style, size);
+    /**
+     * Font chữ chính: Be Vietnam Pro (thiết kế riêng cho tiếng Việt, giấy phép SIL OFL, đóng gói trong client/fonts).
+     * Nếu không nạp được thì dùng Segoe UI (font hệ thống Windows, hỗ trợ tiếng Việt tốt), cuối cùng là SansSerif.
+     */
+    static final String FONT_FAMILY = loadFontFamily();
+
+    private static String loadFontFamily() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        try {
+            for (String face : new String[]{"Regular", "Medium", "Bold", "Italic"}) {
+                try (InputStream in = Theme.class.getResourceAsStream("fonts/BeVietnamPro-" + face + ".ttf")) {
+                    if (in == null) throw new IOException("thieu fonts/BeVietnamPro-" + face + ".ttf");
+                    ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, in));
+                }
+            }
+            return "Be Vietnam Pro";
+        } catch (IOException | FontFormatException e) {
+            System.err.println("Khong nap duoc font Be Vietnam Pro: " + e.getMessage());
+        }
+        for (String f : ge.getAvailableFontFamilyNames()) if (f.equals("Segoe UI")) return f;
+        return Font.SANS_SERIF;
     }
+
+    /**
+     * Lấy font qua StyleContext để Java tự ghép font dự phòng (emoji, ký hiệu) khi font chính thiếu ký tự.
+     * Cỡ chữ được làm tròn xuống số nguyên để nét chữ khớp lưới điểm ảnh, không bị nhoè/răng cưa.
+     */
+    static Font font(int style, float size) {
+        Font base = StyleContext.getDefaultStyleContext().getFont(FONT_FAMILY, style, 12);
+        return base.deriveFont(style, (float) Math.floor(size));
+    }
+
+    /** Cách khử răng cưa chữ của hệ điều hành (ClearType trên Windows); mặc định khử răng cưa thường. */
+    private static final Map<?, ?> DESKTOP_TEXT_HINTS =
+            (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 
     static void hq(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        if (DESKTOP_TEXT_HINTS != null) g.addRenderingHints(DESKTOP_TEXT_HINTS);
     }
 
     // ===================== Thời gian =====================

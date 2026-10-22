@@ -413,6 +413,7 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         contactsScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.DIVIDER));
         contactsScroll.getVerticalScrollBar().setUnitIncrement(20);
+        contactsScroll.getViewport().setBackground(Color.WHITE);
 
         side.add(listScroll, "chats");
         side.add(contactsScroll, "contacts");
@@ -2354,16 +2355,21 @@ public class ChatClientGUI extends JFrame implements MessagePanel.Host {
 
     /** Giao diện hệ điều hành + font hỗ trợ tiếng Việt và emoji. */
     static void installLookAndFeel() {
-        System.setProperty("awt.useSystemAAFontSettings", "on");
+        // khử răng cưa chữ kiểu ClearType (LCD) cho nét sắc trên màn hình Windows; phải đặt trước khi khởi tạo AWT
+        if (System.getProperty("awt.useSystemAAFontSettings") == null) System.setProperty("awt.useSystemAAFontSettings", "lcd");
+        System.setProperty("swing.aatext", "true");
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
         }
-        UIManager.put("ToolTip.font", Theme.font(Font.PLAIN, 12.5f));
-        UIManager.put("OptionPane.messageFont", Theme.font(Font.PLAIN, 13.5f));
-        UIManager.put("OptionPane.buttonFont", Theme.font(Font.PLAIN, 13));
-        UIManager.put("Menu.font", Theme.font(Font.PLAIN, 13.5f));
-        UIManager.put("MenuItem.font", Theme.font(Font.PLAIN, 13.5f));
-        UIManager.put("TextField.font", Theme.font(Font.PLAIN, 13.5f));
+        // dùng font Be Vietnam Pro cho mọi thành phần Swing (hộp thoại, menu, tooltip, ô nhập...)
+        javax.swing.UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+        for (Object key : new ArrayList<>(defaults.keySet())) {
+            Object v = defaults.get(key);
+            if (v instanceof Font) {
+                Font f = (Font) v;
+                UIManager.put(key, new javax.swing.plaf.FontUIResource(Theme.font(f.getStyle(), Math.max(13, f.getSize()))));
+            }
+        }
     }
 }
