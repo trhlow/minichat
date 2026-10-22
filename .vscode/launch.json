@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "1. Server",
+      "request": "launch",
+      "mainClass": "server.ChatServer",
+      "projectName": "MiniChat",
+      "shortenCommandLine": "jarmanifest",
+      "args": "5000",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "java",
+      "name": "2. Client GUI",
+      "request": "launch",
+      "mainClass": "client.ChatClientGUI",
+      "projectName": "MiniChat",
+      "shortenCommandLine": "jarmanifest",
+      "console": "internalConsole"
+    },
+    {
+      "type": "java",
+      "name": "3. Client Console (cmd)",
+      "request": "launch",
+      "mainClass": "client.ConsoleClient",
+      "projectName": "MiniChat",
+      "shortenCommandLine": "jarmanifest",
+      "args": "localhost 5000",
+      "vmArgs": "-Dfile.encoding=UTF-8",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Server + 2 Client GUI",
+      "configurations": ["1. Server", "2. Client GUI", "2. Client GUI"],
+      "stopAll": true
+    }
+  ]
+}

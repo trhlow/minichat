@@ -1,0 +1,18 @@
+# Build output
+bin/
+out/
+*.class
+
+# Server runtime data (accounts, history, uploaded files)
+data/
+
+# IDE / local machine settings
+.vscode/settings.json
+.idea/
+*.iml
+
+# Planning notes (local working memory)
+task_plan.md
+findings.md
+progress.md
+.planning/
