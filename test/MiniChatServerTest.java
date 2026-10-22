@@ -211,11 +211,13 @@ public class MiniChatServerTest {
 
         // ---- Lịch sử phân trang ----
         for (int i = 0; i < Protocol.HISTORY_PAGE + 5; i++) a.send(Protocol.SEND, ab, "tin " + i, 0);
-        Thread.sleep(500);
+        String lastText = "tin " + (Protocol.HISTORY_PAGE + 4);
+        a.expect(Protocol.MSG, f -> f[2].equals(ab) && f[6].equals(lastText), "server da xu ly het tin gui lien tiep");
         Client b2 = Client.login("bob");
         List<String[]> hist = new ArrayList<>();
         String[] end = b2.collect(Protocol.HIST, f -> f[2].equals(ab), hist, Protocol.HISTORY_END, f -> f[1].equals(ab));
-        check(hist.size() == Protocol.HISTORY_PAGE && end[2].equals("1"), "trang lich su dau tien + con tin cu");
+        check(hist.size() == Protocol.HISTORY_PAGE && end[2].equals("1"),
+                "trang lich su dau tien + con tin cu (nhan " + hist.size() + " tin, hasMore=" + end[2] + ")");
         b2.send(Protocol.HISTORY, ab, hist.get(0)[1]);
         hist.clear();
         end = b2.collect(Protocol.HIST, f -> f[2].equals(ab), hist, Protocol.HISTORY_END, f -> f[1].equals(ab));
@@ -269,8 +271,8 @@ public class MiniChatServerTest {
 
         static Client login(String user) throws IOException {
             Client c = new Client();
+            // request() tự bật luồng đọc khi nhận AUTH_OK (không bật lần 2: hai luồng đọc làm đảo thứ tự dòng)
             check(c.request(Protocol.LOGIN, user, "1234")[0].equals(Protocol.AUTH_OK), "dang nhap " + user);
-            c.startReading();
             return c;
         }
 
